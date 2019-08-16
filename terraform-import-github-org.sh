@@ -42,6 +42,7 @@ import_public_repos () {
      
       # Terraform doesn't like '.' in resource names, so if one exists then replace it with a dash
       TERRAFORM_PUBLIC_REPO_NAME=$(echo "${i}" | tr  "."  "-")
+      import_repos_protected_branches
 
       cat >> github-public-repos.tf << EOF
 resource "github_repository" "${TERRAFORM_PUBLIC_REPO_NAME}" {
@@ -59,6 +60,62 @@ EOF
       terraform import "github_repository.${TERRAFORM_PUBLIC_REPO_NAME}" "${i}"
     done
   done
+}
+
+
+import_repos_protected_branches () {
+# Steps
+# Use TERRAFORM_PUBLIC_REPO_NAME to restructure url string
+# use jq to filter "protected" true/false
+# if false return 0 continue to next loop item - if not end function go to next record
+# define new list in var with returned
+# the nested values of protected admin/
+
+required_status_checks
+  "strict": true,
+  "contexts": [
+      "continuous-integration/travis-ci"
+  "enforce_admins":
+    "enabled": true
+  "required_pull_request_reviews
+  "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": true,
+    "required_approving_review_count": 2
+# ^ figure out what is the delimter for T/F    
+
+# restrictions parameter is that set by membership/roles and just recorded here as an output of is this set here???
+
+>>EOF
+resource "github_branch_protection" "example" {
+  repository     = "${github_repository.example.name}"
+  branch         = "master"
+  enforce_admins = true
+
+  required_status_checks {
+    strict   = false
+    contexts = ["ci/travis"]
+  }
+
+  required_pull_request_reviews {
+    dismiss_stale_reviews = true
+    dismissal_users       = ["foo-user"]
+    dismissal_teams       = ["${github_team.example.slug}", "${github_team.second.slug}"]
+  }
+
+  restrictions {
+    users = ["foo-user"]
+    teams = ["${github_team.example.slug}"]
+  }
+}
+
+resource "github_team" "example" {
+  name = "Example Name"
+}
+
+resource "github_team_repository" "example" {
+  team_id    = "${github_team.example.id}"
+  repository = "${github_repository.example.name}"
+  permission = "pull"
 }
 
 # Private Repos
@@ -260,6 +317,8 @@ import_all_team_resources () {
 ## DO IT YO
 ###
 import_public_repos
+#import_repos_protected_branches
+# to test set the vars that you need here and then call the function so you can. 
 import_private_repos
 import_users
 import_all_team_resources

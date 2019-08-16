@@ -1,3 +1,5 @@
+Citation https://github.com/chrisanthropic/terraform-import-github-organization
+
 # WHAT
 It's a simple bash script to simply import a Github Organization into Terraform. It uses the Github API and Terraform CLI to import the following resources:
 - all public repos (includes pagination support for Orgs with 100+ repos)
@@ -107,32 +109,19 @@ resource "github_membership" "$USER_NAME" {
     base_url     =  "https://github.mycompany.com/api/v3/"
   }
   ```
+
 - run `terraform init` to e.g. install the GitHub provider
-- configure the variables at the top of the script
-  - `GITHUB_TOKEN=...`
-  - `ORG=...`
-  - if you're using GitHub Enterprise, `API_URL_PREFIX=...`
-  or remember to pass them in via the environment
-- run the scriptm, perhaps passing the necessary environment variables
+- run the script, passing the necessary environment variables
   ```
-  GITHUB_TOKEN=12334...4555 ORG=my_org terraform-import-github-org.sh
+  export GITHUB_TOKEN=changeme 
+  export ORG=changeme 
+  bash ./terraform-import-github-org.sh
   ```
-- run a terraform plan to see that everything was imported and that no changes are required.
-  - some manual modifications _could_ be required since not every field supported by Terraform has been implemented by this script.
-  - HEADS UP - the script hardcodes user roles to "member".
+- run a terraform plan to see that everything was imported and that no changes are required and output any errors to a file.
+```
+terraform plan &>  error.txt
+```
 
-### Using with GitHub Enterprise
-
-This should also work with GitHub Enterprise deployments if you also
-set (either editing the script or via an environment variable) the
-`API_URL_PREFIX` correctly,
-e.g. `https://github.mycompany.com/api/v3`.
-
-# FAQ
-- Q) Why bash?
-  - A) I like bash.
-- Q) Do you plan on extending this?
-  - A) Sure, see the TODO section.
-
-# TODO
-[Issues](https://github.com/chrisanthropic/terraform-import-github-organization/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement)
+### TO DO
+- [ ] some manual modifications _could_ be required since not every field supported by Terraform has been implemented by this script.
+- [ ] HEADS UP - the script hardcodes user roles to "member".
